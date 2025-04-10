@@ -8,7 +8,9 @@ plugins {
 android {
     namespace = "com.example.signsync"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    
+    // Explicitly set NDK version
+    ndkVersion = "27.0.12077973" // <-- Set the correct NDK version here
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
