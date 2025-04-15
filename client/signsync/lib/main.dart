@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
 import 'login.dart';
 import 'signup.dart';
-import 'home3.dart';
+import 'home.dart';
+// import 'home3.dart';
+import 'get_started.dart';
+
 
 void main() {
   runApp(const SignSyncApp());
@@ -15,18 +20,60 @@ class SignSyncApp extends StatelessWidget {
     return MaterialApp(
       title: 'SignSync',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        fontFamily: 'Roboto',
-      ),
-      initialRoute: '/',       
+      theme: ThemeData(primarySwatch: Colors.blue, fontFamily: 'Roboto'),
+      initialRoute: '/splash', // Use splash screen to check token
       routes: {
         '/': (context) => const SignSyncHomePage(),
         '/signup': (context) => const SignUpScreen(),
         '/login': (context) => const LoginScreen(),
-        '/homepage': (context) => const HomePage(userName: 'Horris'),
-
+        '/homepage': (context) => const HomePage(userName: 'Guest'), // Default for guest mode
+        '/splash': (context) => const SplashScreen(),
       },
+    );
+  }
+}
+
+// Splash Screen to handle token check and navigation
+class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
+  @override
+  _SplashScreenState createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _checkTokenAndNavigate();
+  }
+
+  Future<void> _checkTokenAndNavigate() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final userName = prefs.getString('userName') ?? 'Guest'; // Fallback to 'Guest'
+
+    if (token != null && token.isNotEmpty) {
+      // User is logged in, go to HomePage with stored userName
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage(userName: userName)),
+              (route) => false, // Clear navigation stack
+        );
+      }
+    } else {
+      // No token, go to welcome screen
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
     );
   }
 }
@@ -36,13 +83,11 @@ class SignSyncHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Get screen dimensions
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     return Scaffold(
       body: Stack(
         children: [
-          // Background image with people communicating in sign language
           Container(
             decoration: const BoxDecoration(
               image: DecorationImage(
@@ -51,17 +96,15 @@ class SignSyncHomePage extends StatelessWidget {
               ),
             ),
           ),
-          
-          // White translucent container at the bottom covering 2/3 of screen height
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
-            height: screenHeight * 0.66, // 2/3 of the screen height
+            height: screenHeight * 0.66,
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Colors.white.withAlpha(225), // 0.85 opacity = 217 alpha
+                color: Colors.white.withAlpha(225),
                 borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(16),
                   topRight: Radius.circular(16),
@@ -73,33 +116,16 @@ class SignSyncHomePage extends StatelessWidget {
                 children: [
                   const Text(
                     'Welcome to',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 16),
-                  
-                  // SignSync logo
-                  Image.asset(
-                    'assets/signsync_logo.png',
-                    height: 50,
-                  ),
-                  
+                  Image.asset('assets/signsync_logo.png', height: 50),
                   const SizedBox(height: 8),
-                  
-                  // Tagline
                   const Text(
                     '—bridging deaf and non-deaf communication',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w400,
-                    ),
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w400),
                   ),
-                  
                   const SizedBox(height: 42),
-                  
-                  // Sign Up button
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -125,10 +151,7 @@ class SignSyncHomePage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  
                   const SizedBox(height: 16),
-                  
-                  // Log In button
                   SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -153,18 +176,16 @@ class SignSyncHomePage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  
                   const SizedBox(height: 16),
-                  
-                  // Get Started button
                   SizedBox(
                     width: double.infinity,
                     height: 56,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, '/homepage');
-                        // You can add navigation or introductory flow here
-                        
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const GetStartedScreen()),
+                        );
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
