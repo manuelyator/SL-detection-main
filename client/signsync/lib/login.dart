@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-import 'home.dart'; 
+import 'home.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -194,7 +194,7 @@ class LoginScreenState extends State<LoginScreen> {
     try {
       final response = await http.post(
         Uri.parse(
-          'http://192.168.1.3:5000/api/login',
+          'http://10.5.18.152:5000/api/login',
         ), // Adjust to your Flask URL
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': password}),

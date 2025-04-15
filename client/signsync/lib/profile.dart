@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'home.dart';
 import 'sl_translator.dart';
-import 'faqs.dart';
 
 class ProfilePage extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -42,10 +41,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _initializeCamera() async {
     try {
       if (cameras.isNotEmpty) {
-        _controller = CameraController(
-          cameras.first,
-          ResolutionPreset.medium,
-        );
+        _controller = CameraController(cameras.first, ResolutionPreset.medium);
         _initializeControllerFuture = _controller!.initialize();
       }
     } catch (e) {
@@ -85,7 +81,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
       // Make authenticated request to /api/profile
       final response = await http.get(
-        Uri.parse('http://192.168.1.3:5000/api/profile?user_id=$userId'),
+        Uri.parse('http://10.5.18.152:5000/api/profile?user_id=$userId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -411,33 +407,34 @@ class _ProfilePageState extends State<ProfilePage> {
   void _showReportDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Report a Problem'),
-        content: const TextField(
-          decoration: InputDecoration(
-            hintText: 'Describe the issue you\'re facing',
-            border: OutlineInputBorder(),
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Report a Problem'),
+            content: const TextField(
+              decoration: InputDecoration(
+                hintText: 'Describe the issue you\'re facing',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 5,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Report submitted successfully'),
+                    ),
+                  );
+                },
+                child: const Text('Submit'),
+              ),
+            ],
           ),
-          maxLines: 5,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Report submitted successfully'),
-                ),
-              );
-            },
-            child: const Text('Submit'),
-          ),
-        ],
-      ),
     );
   }
 

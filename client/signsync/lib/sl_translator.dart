@@ -52,18 +52,19 @@ class _SignLanguageTranslatorPageState extends State<SignLanguageTranslatorPage>
         if (e.code == 'CameraAccessDenied') {
           showDialog(
             context: context,
-            builder: (context) => AlertDialog(
-              title: const Text('Camera Permission'),
-              content: const Text(
-                'Camera access denied. Please enable camera permissions in app settings.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('OK'),
+            builder:
+                (context) => AlertDialog(
+                  title: const Text('Camera Permission'),
+                  content: const Text(
+                    'Camera access denied. Please enable camera permissions in app settings.',
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('OK'),
+                    ),
+                  ],
                 ),
-              ],
-            ),
           );
         }
       }
@@ -72,7 +73,9 @@ class _SignLanguageTranslatorPageState extends State<SignLanguageTranslatorPage>
 
   void _startDetection() {
     _detectionTimer?.cancel();
-    _detectionTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) async {
+    _detectionTimer = Timer.periodic(const Duration(milliseconds: 500), (
+      timer,
+    ) async {
       if (!mounted || !_isCameraInitialized || !_isRecording || _isPaused) {
         return;
       }
@@ -87,22 +90,22 @@ class _SignLanguageTranslatorPageState extends State<SignLanguageTranslatorPage>
 
         // Send frame to API for translation
         final response = await http.post(
-          Uri.parse('http://192.168.1.3:5000/api/translate_sign'),
+          Uri.parse('http://10.5.18.152:5000/api/translate_sign'),
           headers: {'Content-Type': 'multipart/form-data'},
-          body: {
-            'image': base64Encode(bytes),
-          },
+          body: {'image': base64Encode(bytes)},
         );
 
         final data = jsonDecode(response.body);
 
         if (response.statusCode == 200 && data['status'] == 'success') {
           setState(() {
-            _translatedText = data['translated_text'] ?? 'No translation available';
+            _translatedText =
+                data['translated_text'] ?? 'No translation available';
           });
         } else {
           setState(() {
-            _translatedText = 'Error: ${data['message'] ?? 'Translation failed'}';
+            _translatedText =
+                'Error: ${data['message'] ?? 'Translation failed'}';
           });
         }
       } catch (e) {
@@ -136,7 +139,10 @@ class _SignLanguageTranslatorPageState extends State<SignLanguageTranslatorPage>
       if (_isPaused) {
         _translatedText = "Paused: $_translatedText"; // Freeze current text
       } else {
-        _translatedText = _translatedText.replaceFirst("Paused: ", ""); // Resume text
+        _translatedText = _translatedText.replaceFirst(
+          "Paused: ",
+          "",
+        ); // Resume text
         _startDetection(); // Resume detection
       }
     });
@@ -270,7 +276,9 @@ class _SignLanguageTranslatorPageState extends State<SignLanguageTranslatorPage>
 
                 // Record button
                 _buildControlButton(
-                  icon: Icon(_isRecording ? Icons.stop : Icons.fiber_manual_record),
+                  icon: Icon(
+                    _isRecording ? Icons.stop : Icons.fiber_manual_record,
+                  ),
                   onPressed: _toggleRecording,
                   color: _isRecording ? Colors.red : Colors.grey[800],
                 ),
@@ -310,13 +318,17 @@ class _SignLanguageTranslatorPageState extends State<SignLanguageTranslatorPage>
             right: 0,
             child: Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: _isPaused
-                      ? Colors.grey
-                      : _isRecording
-                      ? Colors.red
-                      : Colors.green,
+                  color:
+                      _isPaused
+                          ? Colors.grey
+                          : _isRecording
+                          ? Colors.red
+                          : Colors.green,
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Text(

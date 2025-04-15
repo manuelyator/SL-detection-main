@@ -14,7 +14,8 @@ class SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _verifyPasswordController = TextEditingController();
+  final TextEditingController _verifyPasswordController =
+      TextEditingController();
 
   bool _obscurePassword = true;
   bool _obscureVerifyPassword = true;
@@ -147,7 +148,10 @@ class SignUpScreenState extends State<SignUpScreen> {
     final password = _passwordController.text.trim();
     final verifyPassword = _verifyPasswordController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || password.isEmpty || verifyPassword.isEmpty) {
+    if (name.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        verifyPassword.isEmpty) {
       _showErrorMessage('Please fill all fields');
       return;
     }
@@ -157,7 +161,7 @@ class SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    final url = Uri.parse('http://192.168.1.3:5000/api/signup');
+    final url = Uri.parse('http://10.5.18.152:5000/api/signup');
 
     try {
       final response = await http.post(
@@ -228,11 +232,7 @@ class SignUpScreenState extends State<SignUpScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.check_circle,
-                  color: Colors.green,
-                  size: 60,
-                ),
+                const Icon(Icons.check_circle, color: Colors.green, size: 60),
                 const SizedBox(height: 16),
                 const Text(
                   'Sign Up Successful!',
@@ -245,19 +245,13 @@ class SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'Welcome aboard, $name!\nYour account is ready.',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.black54,
-                  ),
+                  style: const TextStyle(fontSize: 16, color: Colors.black54),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
                 const Text(
                   'Redirecting to login...',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
             ),
