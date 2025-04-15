@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login.dart';
 import 'signup.dart';
 import 'home.dart';
+// import 'home3.dart';
 import 'get_started.dart';
+
 
 void main() {
   runApp(const SignSyncApp());

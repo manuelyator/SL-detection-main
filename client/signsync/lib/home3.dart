@@ -1,76 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'sl_translator.dart';
-import 'faqs.dart';
-import 'profile.dart';
-import 'login.dart';
 
 class HomePage extends StatefulWidget {
-  final String? userName;
+  final String userName;
 
-  const HomePage({super.key, this.userName});
+  const HomePage({
+    super.key, 
+    this.userName = 'Horris',
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  late List<CameraDescription> cameras;
-  bool isCameraInitialized = false;
   int _selectedIndex = 0;
-  late String _displayUserName;
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void initState() {
-    super.initState();
-    _displayUserName = widget.userName ?? 'Guest';
-    _initializeCameras();
-    _loadUserName();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _initializeCameras() async {
-    try {
-      cameras = await availableCameras();
-      if (mounted) {
-        setState(() {
-          isCameraInitialized = true;
-        });
-      }
-    } catch (e) {
-      print("Error initializing cameras: $e");
-    }
-  }
-
-  Future<void> _loadUserName() async {
-    final prefs = await SharedPreferences.getInstance();
-    final storedUserName = prefs.getString('userName');
-    if (mounted && storedUserName != null) {
-      setState(() {
-        _displayUserName = storedUserName;
-      });
-    }
-  }
-
-  Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
-    await prefs.remove('userName');
-    if (context.mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-      );
-    }
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,85 +22,107 @@ class _HomePageState extends State<HomePage> {
         color: Colors.white,
         child: Stack(
           children: [
-            Positioned(
-              top: -10,
-              right: -10,
-              width: MediaQuery.of(context).size.width * 0.47,
-              height: MediaQuery.of(context).size.height * 0.65,
-              child: Container(
-                decoration: const BoxDecoration(
-                  gradient: RadialGradient(
-                    center: Alignment(0.5, -0.5),
-                    radius: 0.8,
-                    colors: [
-                      Color.fromARGB(255, 225, 200, 251),
-                      Color.fromARGB(255, 254, 223, 233),
-                      Colors.white,
-                    ],
-                    stops: [0.0, 0.4, 0.8],
-                  ),
-                ),
-              ),
-            ),
+            // Corrected gradient background for top right corner
+  Positioned(
+  top: -10,
+  right: -10, // Kept the same for positioning
+  width: MediaQuery.of(context).size.width * 0.47, // Increased from 0.25 to 0.35 (35% of screen width)
+  height: MediaQuery.of(context).size.height * 0.65,
+  child: Container(
+    decoration: const BoxDecoration(
+      gradient: RadialGradient(
+        center: Alignment(0.5, -0.5), // Center near the top-right
+        radius: 0.8, // Kept the same for the spread
+        colors: [
+          Color.fromARGB(255, 225, 200, 251), // Light purple at the top
+          Color.fromARGB(255, 254, 223, 233), // Light pink below
+          Colors.white, // Fades to white
+        ],
+        stops: [0.0, 0.4, 0.8], // Purple at the start, quick transition to pink, then fade to white
+      ),
+    ),
+  ),
+),
+            
             SafeArea(
               child: Column(
                 children: [
+                  // App Bar with proper sizing
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
                     child: _buildAppBar(),
                   ),
+                  
+                  // Line below the navbar
                   const Divider(height: 1, thickness: 0.5),
+                  
+                  // Main scrollable content
                   Expanded(
                     child: SingleChildScrollView(
-                      controller: _scrollController,
-                      physics: const AlwaysScrollableScrollPhysics(),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 24),
-                            Text(
-                              'Hello $_displayUserName',
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: MediaQuery.of(context).size.height - 180, // Ensure content fills screen properly
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 24),
+                              
+                              // Welcome Text
+                              Text(
+                                'Hello ${widget.userName}',
+                                style: const TextStyle(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Enjoy frictionless',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      'communication - Made with ',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.black54,
-                                      ),
+                              
+                              const SizedBox(height: 8),
+                              
+                              // Subtitle - Modified to display on two lines
+                              const Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Enjoy frictionless',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black54,
                                     ),
-                                    Icon(Icons.favorite, color: Colors.red, size: 16),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 24),
-                            SizedBox(
-                              height: 230,
-                              child: _buildFeatureCards(),
-                            ),
-                            const SizedBox(height: 30),
-                            _buildFAQSection(),
-                            const SizedBox(height: 80), // Extra padding to ensure content scrolls fully
-                          ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        'communication - Made with ',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                      Icon(Icons.favorite, color: Colors.red, size: 16),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              
+                              const SizedBox(height: 24),
+                              
+                              // Feature Cards Row - with fixed height
+                              SizedBox(
+                                height: 230, // Fixed height to match design
+                                child: _buildFeatureCards(),
+                              ),
+                              
+                              const SizedBox(height: 30), // Increased spacing
+                              
+                              // FAQ Section - now properly positioned
+                              _buildFAQSection(),
+                              
+                              const SizedBox(height: 20),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -164,6 +130,8 @@ class _HomePageState extends State<HomePage> {
                 ],
               ),
             ),
+            
+            // Bottom Navigation Bar
             Positioned(
               left: 0,
               right: 0,
@@ -171,7 +139,7 @@ class _HomePageState extends State<HomePage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Divider(height: 1, thickness: 0.5),
+                  const Divider(height: 1, thickness: 0.5), // Thin line above navbar
                   _buildBottomNavigationBar(),
                 ],
               ),
@@ -184,13 +152,20 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildAppBar() {
     return SizedBox(
-      height: 40,
+      height: 40, // Increased height for navbar
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Image.asset('assets/signsync_logo.png', height: 35),
+          // Logo with SL Hand
+          Image.asset(
+            'assets/signsync_logo.png',
+            height: 35,
+          ),
+          
+          // Menu Button - Made clickable
           GestureDetector(
             onTap: () {
+              // Handle menu tap
               showMenu(
                 context: context,
                 position: const RelativeRect.fromLTRB(100, 50, 0, 0),
@@ -199,10 +174,13 @@ class _HomePageState extends State<HomePage> {
                     value: 'settings',
                     child: Text('Settings'),
                   ),
-                  PopupMenuItem<String>(
+                  const PopupMenuItem<String>(
+                    value: 'profile',
+                    child: Text('Profile'),
+                  ),
+                  const PopupMenuItem<String>(
                     value: 'logout',
-                    child: const Text('Logout'),
-                    onTap: _logout,
+                    child: Text('Logout'),
                   ),
                 ],
               );
@@ -218,27 +196,21 @@ class _HomePageState extends State<HomePage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        // Live Sign Translation Card
         Expanded(
           child: GestureDetector(
             onTap: () {
-              if (cameras != null && cameras.isNotEmpty) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => SignLanguageTranslatorPage(cameras: cameras),
-                  ),
-                );
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("No cameras available")),
-                );
-              }
+              // Navigate to Live Sign Translation
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const Placeholder()),
+              );
             },
             child: Container(
               margin: const EdgeInsets.only(right: 8),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8E1FF),
+                color: const Color(0xFFF8E1FF), // Light purple
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Column(
@@ -263,21 +235,29 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 4),
                   const Text(
                     'Point your camera to translate signs to text or audio.',
-                    style: TextStyle(fontSize: 14, color: Colors.black54),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                    ),
                   ),
                 ],
               ),
             ),
           ),
         ),
+        
+        // Right Column Cards
         Expanded(
           child: Column(
             children: [
+              // Chat Card
               Expanded(
                 child: GestureDetector(
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Chat feature coming soon")),
+                    // Navigate to Chat
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const Placeholder()),
                     );
                   },
                   child: Container(
@@ -314,13 +294,18 @@ class _HomePageState extends State<HomePage> {
                         const Spacer(),
                         const Text(
                           'Pass the phone or\nconnect locally',
-                          style: TextStyle(fontSize: 14, color: Colors.black54),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black54,
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
               ),
+              
+              // SL Handmoji Card - Now non-clickable and column format
               Expanded(
                 child: Container(
                   padding: const EdgeInsets.all(16),
@@ -369,7 +354,7 @@ class _HomePageState extends State<HomePage> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFE1F1FF),
+        color: const Color(0xFFE1F1FF), // Light blue
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -377,53 +362,44 @@ class _HomePageState extends State<HomePage> {
         children: [
           const Text(
             'FAQ\'s',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const Divider(height: 17),
           _buildFAQItem(
-            'How do I use the camera translator?',
+            'How do I use the camera translator?', 
             Icons.camera_alt,
             () {
+              // Navigate to camera translator FAQ
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => FAQPage(
-                    cameras: cameras,
-                    question: 'How do I use the camera translator?',
-                  ),
-                ),
+                MaterialPageRoute(builder: (context) => const Placeholder()),
               );
             },
           ),
           const Divider(height: 17),
           _buildFAQItem(
-            'Is my data private and secure?',
+            'How do I use SignSync Chat Feature?', 
             Icons.chat_bubble_outline,
             () {
+              // Navigate to chat FAQ
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => FAQPage(
-                    cameras: cameras,
-                    question: 'Is my data private and secure?',
-                  ),
-                ),
+                MaterialPageRoute(builder: (context) => const Placeholder()),
               );
             },
           ),
           const Divider(height: 17),
           _buildFAQItem(
-            'How do I contact support?',
+            'What is the SL Handmoji?', 
             Icons.front_hand_outlined,
             () {
+              // Navigate to Handmoji FAQ
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => FAQPage(
-                    cameras: cameras,
-                    question: 'How do I contact support?',
-                  ),
-                ),
+                MaterialPageRoute(builder: (context) => const Placeholder()),
               );
             },
           ),
@@ -438,7 +414,12 @@ class _HomePageState extends State<HomePage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: const TextStyle(fontSize: 14.5)),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14.5,
+            ),
+          ),
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -455,7 +436,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildBottomNavigationBar() {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 16),
+      padding: const EdgeInsets.symmetric(vertical: 16), // Increased padding
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
@@ -470,57 +451,35 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildNavItem(IconData icon, int index) {
     return GestureDetector(
-      onTap: () async {
+      onTap: () {
         setState(() {
           _selectedIndex = index;
         });
-
+        // Navigate to corresponding screen based on index
         switch (index) {
           case 0:
+            // Already on home page
             break;
           case 1:
-            if (cameras != null && cameras.isNotEmpty) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SignLanguageTranslatorPage(cameras: cameras),
-                ),
-              );
-            } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("No cameras available")),
-              );
-            }
+            // Navigate to camera page
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const Placeholder()),
+            );
             break;
           case 2:
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Chat feature coming soon!'),
-                duration: Duration(seconds: 2),
-              ),
+            // Navigate to chat page
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const Placeholder()),
             );
             break;
           case 3:
-            try {
-              List<CameraDescription> camerasList = await availableCameras();
-              if (context.mounted) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProfilePage(cameras: camerasList),
-                  ),
-                );
-              }
-            } catch (e) {
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Failed to access camera'),
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-              }
-            }
+            // Navigate to profile page
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const Placeholder()),
+            );
             break;
         }
       },
@@ -533,9 +492,10 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
+// For the main app
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+  const MyApp({Key? key}) : super(key: key);
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -545,7 +505,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: const HomePage(),
+      home: const HomePage(userName: 'James'),
     );
   }
 }
