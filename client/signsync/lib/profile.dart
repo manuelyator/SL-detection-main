@@ -81,7 +81,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
       // Make authenticated request to /api/profile
       final response = await http.get(
-        Uri.parse('http://10.5.18.152:5000/api/profile?user_id=$userId'),
+        Uri.parse('http://192.168.100.26:5000/api/profile?user_id=$userId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

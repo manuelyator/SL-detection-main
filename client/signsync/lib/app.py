@@ -12,7 +12,7 @@ CORS(app)  # Enable CORS for all routes
 # MySQL Configuration
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_PASSWORD'] = 'makaveli'
 app.config['MYSQL_DB'] = 'db_signsync'
 
 # Secret key for JWT token encoding

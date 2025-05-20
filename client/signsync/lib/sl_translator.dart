@@ -90,7 +90,7 @@ class _SignLanguageTranslatorPageState extends State<SignLanguageTranslatorPage>
 
         // Send frame to API for translation
         final response = await http.post(
-          Uri.parse('http://10.5.18.152:5000/api/translate_sign'),
+          Uri.parse('http://192.168.100.26:5000/api/translate_sign'),
           headers: {'Content-Type': 'multipart/form-data'},
           body: {'image': base64Encode(bytes)},
         );
