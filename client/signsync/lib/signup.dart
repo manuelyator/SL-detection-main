@@ -161,7 +161,7 @@ class SignUpScreenState extends State<SignUpScreen> {
       return;
     }
 
-    final url = Uri.parse('http://10.5.18.152:5000/api/signup');
+    final url = Uri.parse('http://192.168.1.3:5000/api/signup');
 
     try {
       final response = await http.post(

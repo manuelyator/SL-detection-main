@@ -19,14 +19,21 @@ class _HomePageState extends State<HomePage> {
   late List<CameraDescription> cameras;
   bool isCameraInitialized = false;
   int _selectedIndex = 0;
-  late String _displayUserName; // Initialize immediately with a fallback
+  late String _displayUserName;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _displayUserName = widget.userName ?? 'Guest';
     _initializeCameras();
-    _loadUserName(); // Update with stored value if available
+    _loadUserName();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _initializeCameras() async {
@@ -46,8 +53,10 @@ class _HomePageState extends State<HomePage> {
     final prefs = await SharedPreferences.getInstance();
     final storedUserName = prefs.getString('userName');
     if (mounted && storedUserName != null) {
+      // Split the full name and get just the first name
+      final firstName = storedUserName.split(' ')[0];
       setState(() {
-        _displayUserName = storedUserName;
+        _displayUserName = firstName;
       });
     }
   }
@@ -91,77 +100,75 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
             ),
-            Column(
-              children: [
-                SafeArea(
-                  child: Padding(
+            SafeArea(
+              child: Column(
+                children: [
+                  Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20.0,
                       vertical: 8.0,
                     ),
                     child: _buildAppBar(),
                   ),
-                ),
-                const Divider(height: 1, thickness: 0.5),
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 24),
-                          Text(
-                            'Hello $_displayUserName',
-                            style: const TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
+                  const Divider(height: 1, thickness: 0.5),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 24),
+                            Text(
+                              'Hello $_displayUserName',
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Enjoy frictionless',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.black54,
+                            const SizedBox(height: 8),
+                            const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Enjoy frictionless',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black54,
+                                  ),
                                 ),
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    'communication - Made with ',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.black54,
+                                Row(
+                                  children: [
+                                    Text(
+                                      'communication - Made with ',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black54,
+                                      ),
                                     ),
-                                  ),
-                                  Icon(
-                                    Icons.favorite,
-                                    color: Colors.red,
-                                    size: 16,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            height: 230,
-                            child: _buildFeatureCards(),
-                          ),
-                          const SizedBox(height: 30),
-                          _buildFAQSection(),
-                          const SizedBox(height: 20),
-                        ],
+                                    Icon(
+                                      Icons.favorite,
+                                      color: Colors.red,
+                                      size: 16,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
+                            SizedBox(height: 230, child: _buildFeatureCards()),
+                            const SizedBox(height: 30),
+                            _buildFAQSection(),
+                            const SizedBox(height: 80),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             Positioned(
               left: 0,
@@ -198,11 +205,6 @@ class _HomePageState extends State<HomePage> {
                     value: 'settings',
                     child: Text('Settings'),
                   ),
-                  PopupMenuItem<String>(
-                    value: 'logout',
-                    child: const Text('Logout'),
-                    onTap: _logout,
-                  ),
                 ],
               );
             },
@@ -224,8 +226,9 @@ class _HomePageState extends State<HomePage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        SignLanguageTranslatorPage(cameras: cameras),
+                    builder:
+                        (context) =>
+                            SignLanguageTranslatorPage(cameras: cameras),
                   ),
                 );
               } else {
@@ -262,7 +265,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 4),
                   const Text(
-                    'Point your camera to translate signs to text or audio.',
+                    'Point your camera to translate signs to text.',
                     style: TextStyle(fontSize: 14, color: Colors.black54),
                   ),
                 ],
@@ -316,7 +319,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                         const Spacer(),
                         const Text(
-                          'Pass the phone or\nconnect locally',
+                          'Let conversations \nflow freely',
                           style: TextStyle(fontSize: 14, color: Colors.black54),
                         ),
                       ],
@@ -386,14 +389,15 @@ class _HomePageState extends State<HomePage> {
           _buildFAQItem(
             'How do I use the camera translator?',
             Icons.camera_alt,
-                () {
+            () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => FAQPage(
-                    cameras: cameras,
-                    question: 'How do I use the camera translator?',
-                  ),
+                  builder:
+                      (context) => FAQPage(
+                        cameras: cameras,
+                        question: 'How do I use the camera translator?',
+                      ),
                 ),
               );
             },
@@ -402,14 +406,15 @@ class _HomePageState extends State<HomePage> {
           _buildFAQItem(
             'Is my data private and secure?',
             Icons.chat_bubble_outline,
-                () {
+            () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => FAQPage(
-                    cameras: cameras,
-                    question: 'Is my data private and secure?',
-                  ),
+                  builder:
+                      (context) => FAQPage(
+                        cameras: cameras,
+                        question: 'Is my data private and secure?',
+                      ),
                 ),
               );
             },
@@ -418,14 +423,15 @@ class _HomePageState extends State<HomePage> {
           _buildFAQItem(
             'How do I contact support?',
             Icons.front_hand_outlined,
-                () {
+            () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => FAQPage(
-                    cameras: cameras,
-                    question: 'How do I contact support?',
-                  ),
+                  builder:
+                      (context) => FAQPage(
+                        cameras: cameras,
+                        question: 'How do I contact support?',
+                      ),
                 ),
               );
             },
@@ -486,7 +492,8 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => SignLanguageTranslatorPage(cameras: cameras),
+                  builder:
+                      (context) => SignLanguageTranslatorPage(cameras: cameras),
                 ),
               );
             } else {

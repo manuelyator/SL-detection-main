@@ -18,8 +18,8 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   int _selectedIndex = 3;
   late List<CameraDescription> cameras;
-  CameraController? _controller;
-  Future<void>? _initializeControllerFuture;
+  CameraController? controller;
+  Future<void>? initializeControllerFuture;
 
   Map<String, dynamic> userData = {
     'name': 'Loading...',
@@ -41,27 +41,28 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _initializeCamera() async {
     try {
       if (cameras.isNotEmpty) {
-        _controller = CameraController(cameras.first, ResolutionPreset.medium);
-        _initializeControllerFuture = _controller!.initialize();
+        controller = CameraController(cameras.first, ResolutionPreset.medium);
+        initializeControllerFuture = controller!.initialize();
       }
     } catch (e) {
       debugPrint('Camera initialization error: $e');
     }
   }
 
+  bool isOffline = false;
+
   Future<void> _fetchUserData() async {
     setState(() {
       isLoading = true;
       errorMessage = '';
+      isOffline = false;
     });
 
     try {
-      // Get the token from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString('token');
 
       if (token == null) {
-        // User is not logged in, set message
         if (mounted) {
           setState(() {
             userData = {
@@ -75,21 +76,16 @@ class _ProfilePageState extends State<ProfilePage> {
         return;
       }
 
-      // Decode the token to get user_id
       final decodedToken = JwtDecoder.decode(token);
       final userId = decodedToken['user_id'];
 
-      // Make authenticated request to /api/profile
       final response = await http.get(
-        Uri.parse('http://10.5.18.152:5000/api/profile?user_id=$userId'),
+        Uri.parse('http://192.168.1.3:5000/api/profile?user_id=$userId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-      );
-
-      debugPrint('Response status: ${response.statusCode}');
-      debugPrint('Response body: ${response.body}');
+      ).timeout(const Duration(seconds: 10));
 
       final data = json.decode(response.body);
 
@@ -105,6 +101,7 @@ class _ProfilePageState extends State<ProfilePage> {
           setState(() {
             errorMessage = data['message'] ?? 'Failed to load profile';
             isLoading = false;
+            isOffline = true;
           });
         }
       }
@@ -112,8 +109,9 @@ class _ProfilePageState extends State<ProfilePage> {
       debugPrint('Error: $e');
       if (mounted) {
         setState(() {
-          errorMessage = 'Connection error: ${e.toString()}';
+          errorMessage = 'Connection error: Could not reach server';
           isLoading = false;
+          isOffline = true;
         });
       }
     }
@@ -121,8 +119,67 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   void dispose() {
-    _controller?.dispose();
+    controller?.dispose();
     super.dispose();
+  }
+
+  Future<void> _logoutUser() async {
+    // Show confirmation dialog
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Log Out'),
+        content: const Text('Are you sure you want to log out?'),
+        actions: [
+          FilledButton.tonal(
+            onPressed: () => Navigator.pop(context, false),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.grey[200],
+              foregroundColor: Colors.grey[800],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.red[400],
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            child: const Text('Log Out'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout != true) return;
+
+    try {
+      // Clear the token from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('token');
+
+      // Navigate to login screen and remove all routes
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/login',
+                (route) => false
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Error during logout')),
+        );
+      }
+      debugPrint('Logout error: $e');
+    }
   }
 
   @override
@@ -163,9 +220,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
-    if (errorMessage.isNotEmpty) {
-      return Center(child: Text(errorMessage));
-    }
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -174,15 +229,41 @@ class _ProfilePageState extends State<ProfilePage> {
           end: Alignment.bottomCenter,
         ),
       ),
-      child: ListView(
-        padding: const EdgeInsets.all(16.0),
+      child: Column(
         children: [
-          _buildInfoSection(),
-          const SizedBox(height: 24.0),
-          _buildProSection(),
-          const SizedBox(height: 24.0),
-          _buildAboutSection(),
-          const SizedBox(height: 60.0),
+          if (errorMessage.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  Text(
+                    errorMessage,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  if (isOffline)
+                    TextButton(
+                      onPressed: _fetchUserData,
+                      child: const Text('Retry'),
+                    ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                if (!isOffline || userData['name'] != 'Offline Mode')
+                  _buildInfoSection(),
+                const SizedBox(height: 24.0),
+                _buildProSection(),
+                const SizedBox(height: 24.0),
+                _buildAboutSection(),
+                const SizedBox(height: 60.0),
+                _buildLogoutButton(),
+                const SizedBox(height: 15.0),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -375,6 +456,24 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Color(0xFFFF4E36),
+        foregroundColor: Colors.white,
+        minimumSize: const Size(double.infinity, 44),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(22.0),
+        ),
+      ),
+      onPressed: () => _logoutUser(),
+      child: const Text(
+        'Log Out',
+        style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+      ),
     );
   }
 
