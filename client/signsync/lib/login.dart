@@ -194,7 +194,7 @@ class LoginScreenState extends State<LoginScreen> {
     try {
       final response = await http.post(
         Uri.parse(
-          'http://10.5.18.152:5000/api/login',
+          'http://192.168.100.26:5000/api/login',
         ), // Adjust to your Flask URL
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'password': password}),
