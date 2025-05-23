@@ -1,7 +1,37 @@
-0 Hello
-1 I love you
-2 No
-3 Okay
-4 Please
-5 Thank you
-6 Yes
+A
+B
+C
+D
+E
+F
+Five
+Four
+G
+H
+Hello
+I
+I love you
+J
+K
+L
+M
+N
+No
+O
+One
+P
+Q
+R
+S
+T
+Thanks
+Three
+Two
+U
+V
+W
+X
+Y
+Yes
+Z
+Zero
